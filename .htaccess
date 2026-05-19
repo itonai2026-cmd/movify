@@ -6,7 +6,7 @@
 RewriteEngine On
 
 # Subdirectory base – change to / if deployed at domain root
-RewriteBase /movify/
+RewriteBase /wp/movify/
 
 # Force HTTPS (uncomment in production)
 # RewriteCond %{HTTPS} off

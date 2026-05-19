@@ -51,7 +51,7 @@ define('MAX_UPLOAD_SIZE', 50 * 1024 * 1024); // 50 MB
 // ── Subdirectory Support ────────────────────────────────────────────
 // Set to '/movify' (no trailing slash) when deployed in a subdirectory.
 // Set to '' (empty string) when deployed at the domain root.
-define('BASE_PATH', getenv('BASE_PATH') !== false ? rtrim(getenv('BASE_PATH'), '/') : '/movify');
+define('BASE_PATH', getenv('BASE_PATH') !== false ? rtrim(getenv('BASE_PATH'), '/') : '/wp/movify');
 
 // ── AI API ──────────────────────────────────────────────────────────
 define('FAL_AI_API_KEY', getenv('FAL_AI_API_KEY') ?: '');
