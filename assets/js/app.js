@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fpsValues.forEach(fps => {
             const opt = document.createElement('option');
             opt.value = fps;
-            opt.textContent = fps + ' FPS' + (fps == fpsDefault ? ' (implicit)' : '');
+            opt.textContent = fps + ' FPS' + (fps == fpsDefault ? ' (default)' : '');
             if (fps == fpsDefault) opt.selected = true;
             fpsSelect.appendChild(opt);
         });
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const fps = parseInt(fpsSelect.value) || 16;
         const realDuration = (NUM_FRAMES / fps).toFixed(1);
-        fpsDurationHint.textContent = `Durată reală estimată: ~${realDuration}s (${NUM_FRAMES} cadre la ${fps} FPS)`;
+        fpsDurationHint.textContent = `Estimated real duration: ~${realDuration}s (${NUM_FRAMES} frames at ${fps} FPS)`;
     }
 
     // Recalculate on every control change
@@ -103,14 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGenerate.disabled = true;
         processing.classList.remove('hidden');
         progressBar.style.width = '5%';
-        processingTx.textContent = 'Se trimite cererea...';
+        processingTx.textContent = 'Sending request...';
 
         try {
             const res  = await fetch(BASE_PATH + '/generate_video.php', { method: 'POST', body: fd });
             const data = await res.json();
 
             if (!data.ok) {
-                alert(data.error || 'Eroare la generare.');
+                alert(data.error || 'Generation error.');
                 btnGenerate.disabled = false;
                 processing.classList.add('hidden');
                 return;
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 creditBadge.textContent = data.credits;
             }
 
-            processingTx.textContent = 'Video-ul este în curs de generare...';
+            processingTx.textContent = 'Generating video...';
             progressBar.style.width = '15%';
 
             // Start polling
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error(err);
-            alert('Eroare de rețea. Reîncearcă.');
+            alert('Network error. Try again.');
             btnGenerate.disabled = false;
             processing.classList.add('hidden');
         }
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'completed') {
                     clearInterval(interval);
                     progressBar.style.width = '100%';
-                    processingTx.textContent = 'Video generat cu succes!';
+                    processingTx.textContent = 'Video generated successfully!';
 
                     if (data.credits !== undefined && creditBadge) {
                         creditBadge.textContent = data.credits;
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.status === 'failed') {
                     clearInterval(interval);
-                    processingTx.textContent = data.error || 'Generarea a eșuat.';
+                    processingTx.textContent = data.error || 'Generation failed.';
                     progressBar.style.width = '0%';
                     progressBar.classList.replace('bg-primary-500', 'bg-red-500');
 
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Update progress text if API provides it
                 if (data.progress !== null && data.progress !== undefined) {
-                    processingTx.textContent = `Progres: ${Math.round(data.progress * 100)}%`;
+                    processingTx.textContent = `Progress: ${Math.round(data.progress * 100)}%`;
                 }
 
             } catch (err) {
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Delete Video ────────────────────────────────────────────────────
 async function deleteVideo(videoId, btn) {
-    if (!confirm('Sigur vrei să ștergi acest video?')) return;
+    if (!confirm('Are you sure you want to delete this video?')) return;
 
     btn.disabled = true;
     btn.textContent = '...';
@@ -211,13 +211,13 @@ async function deleteVideo(videoId, btn) {
             const card = btn.closest('.group');
             if (card) card.remove();
         } else {
-            alert(data.error || 'Eroare la ștergere.');
+            alert(data.error || 'Delete error.');
             btn.disabled = false;
             btn.textContent = 'Șterge';
         }
     } catch (err) {
         console.error(err);
-        alert('Eroare de rețea.');
+        alert('Network error.');
         btn.disabled = false;
         btn.textContent = 'Șterge';
     }

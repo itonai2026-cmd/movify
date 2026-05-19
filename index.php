@@ -10,7 +10,7 @@ if (!empty($_SESSION['user_id'])) {
     redirect('dashboard.php');
 }
 
-$pageTitle = 'Bine ai venit';
+$pageTitle = 'Welcome';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
@@ -21,7 +21,7 @@ require_once __DIR__ . '/includes/header.php';
             <h1 class="text-5xl font-bold bg-gradient-to-r from-primary-400 to-purple-400 bg-clip-text text-transparent">
                 Movify
             </h1>
-            <p class="mt-3 text-gray-400 text-lg">Generator video AI – din text și imagine</p>
+            <p class="mt-3 text-gray-400 text-lg">AI Video Generator – from text and image</p>
         </div>
 
         <!-- Hero illustration placeholder -->
@@ -36,11 +36,11 @@ require_once __DIR__ . '/includes/header.php';
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="<?= url('login.php') ?>"
                class="px-8 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold transition">
-                Autentificare
+                Sign In
             </a>
             <a href="<?= url('register.php') ?>"
                class="px-8 py-3 rounded-xl border border-gray-600 hover:border-primary-500 text-gray-300 hover:text-white font-semibold transition">
-                Creează cont
+                Create Account
             </a>
         </div>
     </div>

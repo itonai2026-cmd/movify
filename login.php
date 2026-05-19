@@ -15,7 +15,7 @@ $success = flash('success');
 
 if (is_post()) {
     if (!verify_csrf(post('csrf_token'))) {
-        $error = 'Cerere invalidă.';
+        $error = 'Invalid request.';
     } else {
         $result = login_user($pdo, post('email'), post('password'));
         if ($result['ok']) {
@@ -30,13 +30,13 @@ if (is_post()) {
     }
 }
 
-$pageTitle = 'Autentificare';
+$pageTitle = 'Sign In';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="flex min-h-screen items-center justify-center px-4">
     <div class="w-full max-w-md bg-dark-800 rounded-2xl p-8 shadow-xl border border-gray-700">
-        <h2 class="text-2xl font-bold text-center mb-6">Autentificare</h2>
+        <h2 class="text-2xl font-bold text-center mb-6">Sign In</h2>
 
         <?php if ($success): ?>
             <div class="mb-4 p-3 rounded-lg bg-green-900/40 border border-green-700 text-green-300 text-sm">
@@ -58,25 +58,25 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="email" id="email" name="email" required
                        value="<?= h(post('email')) ?>"
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white placeholder-gray-500"
-                       placeholder="exemplu@email.com">
+                       placeholder="you@example.com">
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Parolă</label>
+                <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
                 <input type="password" id="password" name="password" required
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white placeholder-gray-500"
-                       placeholder="Introdu parola">
+                       placeholder="Enter password">
             </div>
 
             <button type="submit"
                     class="w-full py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition">
-                Autentificare
+                Sign In
             </button>
         </form>
 
         <div class="flex justify-between text-sm mt-6 text-gray-400">
-            <a href="<?= url('forgot_password.php') ?>" class="hover:text-primary-400 transition">Am uitat parola</a>
-            <a href="<?= url('register.php') ?>" class="hover:text-primary-400 transition">Creează cont</a>
+            <a href="<?= url('forgot_password.php') ?>" class="hover:text-primary-400 transition">Forgot password</a>
+            <a href="<?= url('register.php') ?>" class="hover:text-primary-400 transition">Create account</a>
         </div>
     </div>
 </div>

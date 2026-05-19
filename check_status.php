@@ -13,14 +13,14 @@ require_once __DIR__ . '/includes/credits_helper.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id'])) {
-    json_response(['ok' => false, 'error' => 'Neautorizat.'], 401);
+    json_response(['ok' => false, 'error' => 'Unauthorized.'], 401);
 }
 
 $userId  = (int)$_SESSION['user_id'];
 $videoId = (int)get_param('video_id');
 
 if (!$videoId) {
-    json_response(['ok' => false, 'error' => 'video_id lipsă.'], 400);
+    json_response(['ok' => false, 'error' => 'video_id missing.'], 400);
 }
 
 // ── Fetch video record ──────────────────────────────────────────────
@@ -31,7 +31,7 @@ $stmt->execute([$videoId, $userId]);
 $video = $stmt->fetch();
 
 if (!$video) {
-    json_response(['ok' => false, 'error' => 'Video negăsit.'], 404);
+    json_response(['ok' => false, 'error' => 'Video not found.'], 404);
 }
 
 // Already completed or failed
@@ -84,7 +84,7 @@ if ($httpCode >= 400) {
         json_response([
             'ok'      => true,
             'status'  => 'failed',
-            'error'   => 'Generarea a eșuat (API indisponibil). Creditele au fost returnate.',
+            'error'   => 'Generation failed (API unavailable). Credits have been refunded.',
             'credits' => get_credits($pdo, $userId),
         ]);
     }
@@ -92,7 +92,7 @@ if ($httpCode >= 400) {
     json_response([
         'ok'     => true,
         'status' => 'processing',
-        'detail' => 'Încă se procesează...',
+        'detail' => 'Still processing...',
     ]);
 }
 
@@ -160,7 +160,7 @@ if ($status === 'completed' || $status === 'succeeded') {
     json_response([
         'ok'      => true,
         'status'  => 'failed',
-        'error'   => $resultData['detail'] ?? 'Generarea a eșuat (fără URL video). Creditele au fost returnate.',
+        'error'   => $resultData['detail'] ?? 'Generation failed (no video URL). Credits have been refunded.',
         'credits' => get_credits($pdo, $userId),
     ]);
 }
@@ -175,7 +175,7 @@ if ($status === 'failed' || $status === 'error') {
     json_response([
         'ok'      => true,
         'status'  => 'failed',
-        'error'   => $data['error'] ?? 'Generarea a eșuat. Creditele au fost returnate.',
+        'error'   => $data['error'] ?? 'Generation failed. Credits have been refunded.',
         'credits' => get_credits($pdo, $userId),
     ]);
 }
@@ -187,5 +187,5 @@ json_response([
     'ok'       => true,
     'status'   => 'processing',
     'progress' => $progress,
-    'detail'   => 'Video-ul este în curs de generare...',
+    'detail'   => 'Video is being generated...',
 ]);

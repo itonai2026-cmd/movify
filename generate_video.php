@@ -14,11 +14,11 @@ header('Content-Type: application/json');
 
 // ── Auth guard ──────────────────────────────────────────────────────
 if (empty($_SESSION['user_id'])) {
-    json_response(['ok' => false, 'error' => 'Neautorizat.'], 401);
+    json_response(['ok' => false, 'error' => 'Unauthorized.'], 401);
 }
 
 if (!is_post()) {
-    json_response(['ok' => false, 'error' => 'Metodă nepermisă.'], 405);
+    json_response(['ok' => false, 'error' => 'Method not allowed.'], 405);
 }
 
 $userId = (int)$_SESSION['user_id'];
@@ -37,32 +37,32 @@ $allowedDurations   = [4, 6, 8, 10];
 $allowedFormats     = ['movie', 'portrait', 'landscape', 'portrait_32', 'square'];
 
 if (!$prompt && empty($_FILES['image'])) {
-    json_response(['ok' => false, 'error' => 'Furnizează un prompt sau o imagine.'], 400);
+    json_response(['ok' => false, 'error' => 'Provide a prompt or an image.'], 400);
 }
 if (!in_array($model, $allowedModels, true)) {
-    json_response(['ok' => false, 'error' => 'Model invalid.'], 400);
+    json_response(['ok' => false, 'error' => 'Invalid model.'], 400);
 }
 if (!in_array($resolution, $allowedResolutions, true)) {
-    json_response(['ok' => false, 'error' => 'Rezoluție invalidă.'], 400);
+    json_response(['ok' => false, 'error' => 'Invalid resolution.'], 400);
 }
 if (!in_array($duration, $allowedDurations, true)) {
-    json_response(['ok' => false, 'error' => 'Durată invalidă.'], 400);
+    json_response(['ok' => false, 'error' => 'Invalid duration.'], 400);
 }
 if (!in_array($format, $allowedFormats, true)) {
-    json_response(['ok' => false, 'error' => 'Format invalid.'], 400);
+    json_response(['ok' => false, 'error' => 'Invalid format.'], 400);
 }
 
 // ── Resolve model config ────────────────────────────────────────────
 $modelConfig = get_model_config($model);
 if (!$modelConfig) {
-    json_response(['ok' => false, 'error' => 'Configurație model lipsă.'], 400);
+    json_response(['ok' => false, 'error' => 'Missing model configuration.'], 400);
 }
 
 // ── Credit check (base_cost_per_second × duration) ──────────────────
 $cost = calculate_credits($model, $duration);
 
 if (!can_afford($pdo, $userId, $cost)) {
-    json_response(['ok' => false, 'error' => 'Credite insuficiente. Cost: ' . $cost], 400);
+    json_response(['ok' => false, 'error' => 'Insufficient credits. Cost: ' . $cost], 400);
 }
 
 // ── Handle image upload ─────────────────────────────────────────────
@@ -73,7 +73,7 @@ if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     $file = $_FILES['image'];
 
     if ($file['size'] > MAX_UPLOAD_SIZE) {
-        json_response(['ok' => false, 'error' => 'Imaginea depășește limita de 50 MB.'], 400);
+        json_response(['ok' => false, 'error' => 'Image exceeds the 50 MB limit.'], 400);
     }
 
     $allowed = ['image/jpeg', 'image/png', 'image/webp'];
@@ -82,7 +82,7 @@ if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     finfo_close($finfo);
 
     if (!in_array($mime, $allowed, true)) {
-        json_response(['ok' => false, 'error' => 'Tip de fișier neacceptat (JPEG, PNG, WebP).'], 400);
+        json_response(['ok' => false, 'error' => 'Unsupported file type (JPEG, PNG, WebP).'], 400);
     }
 
     $ext       = pathinfo($file['name'], PATHINFO_EXTENSION) ?: 'jpg';
@@ -94,19 +94,19 @@ if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     }
 
     if (!move_uploaded_file($file['tmp_name'], $imagePath)) {
-        json_response(['ok' => false, 'error' => 'Eroare la salvarea imaginii.'], 500);
+        json_response(['ok' => false, 'error' => 'Error saving the image.'], 500);
     }
 
     // Upload to Fal.ai CDN so the model can access it
     $imageUrl = upload_to_fal_cdn($imagePath, $mime);
     if (!$imageUrl) {
-        json_response(['ok' => false, 'error' => 'Eroare la uploadul imaginii pe CDN.'], 500);
+        json_response(['ok' => false, 'error' => 'Error uploading the image to CDN.'], 500);
     }
 }
 
 // ── Deduct credits ──────────────────────────────────────────────────
 if (!deduct_credits($pdo, $userId, $cost)) {
-    json_response(['ok' => false, 'error' => 'Credite insuficiente (concurrency).'], 400);
+    json_response(['ok' => false, 'error' => 'Insufficient credits (concurrency).'], 400);
 }
 
 // ── Resolve Fal.ai endpoint (text-to-video or image-to-video) ───────
@@ -165,7 +165,7 @@ curl_close($ch);
 if ($curlError || $httpCode >= 400) {
     refund_credits($pdo, $userId, $cost);
     error_log("Fal.ai error [{$httpCode}]: {$curlError} – {$apiResponse}");
-    json_response(['ok' => false, 'error' => 'Eroare la generarea video. Creditele au fost returnate.'], 502);
+    json_response(['ok' => false, 'error' => 'Video generation error. Credits have been refunded.'], 502);
 }
 
 $apiData = json_decode($apiResponse, true);
@@ -175,7 +175,7 @@ $responseUrl = $apiData['response_url'] ?? null;
 
 if (!$queueId) {
     refund_credits($pdo, $userId, $cost);
-    json_response(['ok' => false, 'error' => 'Răspuns API neașteptat.'], 502);
+    json_response(['ok' => false, 'error' => 'Unexpected API response.'], 502);
 }
 
 // ── Save video record (status = processing) ─────────────────────────
@@ -208,5 +208,5 @@ json_response([
     'queue_id'  => $queueId,
     'cost'      => $cost,
     'credits'   => get_credits($pdo, $userId),
-    'message'   => 'Video-ul este în curs de generare...',
+    'message'   => 'Video is being generated...',
 ]);

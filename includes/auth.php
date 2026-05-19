@@ -31,16 +31,16 @@ function register_user(PDO $pdo, string $email, string $password): array
     $email = trim(strtolower($email));
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return ['ok' => false, 'error' => 'Adresă de email invalidă.'];
+        return ['ok' => false, 'error' => 'Invalid email address.'];
     }
     if (strlen($password) < 8) {
-        return ['ok' => false, 'error' => 'Parola trebuie să aibă cel puțin 8 caractere.'];
+        return ['ok' => false, 'error' => 'Password must be at least 8 characters.'];
     }
 
     $exists = $pdo->prepare('SELECT id FROM users WHERE email = ?');
     $exists->execute([$email]);
     if ($exists->fetch()) {
-        return ['ok' => false, 'error' => 'Acest email este deja înregistrat.'];
+        return ['ok' => false, 'error' => 'This email is already registered.'];
     }
 
     $hash = password_hash($password, PASSWORD_BCRYPT);
@@ -86,10 +86,10 @@ function login_user(PDO $pdo, string $email, string $password): array
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password_hash'])) {
-        return ['ok' => false, 'error' => 'Email sau parolă incorectă.'];
+        return ['ok' => false, 'error' => 'Incorrect email or password.'];
     }
     if (!$user['is_verified']) {
-        return ['ok' => false, 'error' => 'Contul nu este verificat. Verifică email-ul.', 'needs_verify' => true];
+        return ['ok' => false, 'error' => 'Account not verified. Please check your email.', 'needs_verify' => true];
     }
 
     $_SESSION['user_id'] = $user['id'];
@@ -139,7 +139,7 @@ function create_password_reset(PDO $pdo, string $email): bool
 function reset_password(PDO $pdo, string $token, string $newPassword): array
 {
     if (strlen($newPassword) < 8) {
-        return ['ok' => false, 'error' => 'Parola trebuie să aibă cel puțin 8 caractere.'];
+        return ['ok' => false, 'error' => 'Password must be at least 8 characters.'];
     }
 
     $stmt = $pdo->prepare(
@@ -149,7 +149,7 @@ function reset_password(PDO $pdo, string $token, string $newPassword): array
     $row = $stmt->fetch();
 
     if (!$row) {
-        return ['ok' => false, 'error' => 'Link invalid sau expirat.'];
+        return ['ok' => false, 'error' => 'Invalid or expired link.'];
     }
 
     $hash = password_hash($newPassword, PASSWORD_BCRYPT);
@@ -164,15 +164,15 @@ function reset_password(PDO $pdo, string $token, string $newPassword): array
 // ── Email Helpers ───────────────────────────────────────────────────
 function send_verification_email(string $to, string $code): void
 {
-    $subject = APP_NAME . ' – Cod de verificare';
-    $body    = "Codul tău de verificare este: <strong>{$code}</strong><br>Introdu acest cod pe pagina de verificare.";
+    $subject = APP_NAME . ' – Verification Code';
+    $body    = "Your verification code is: <strong>{$code}</strong><br>Enter this code on the verification page.";
     send_mail($to, $subject, $body);
 }
 
 function send_reset_email(string $to, string $link): void
 {
-    $subject = APP_NAME . ' – Resetare parolă';
-    $body    = "Apasă pe link-ul de mai jos pentru a reseta parola (valabil 15 minute):<br><a href=\"{$link}\">{$link}</a>";
+    $subject = APP_NAME . ' – Password Reset';
+    $body    = "Click the link below to reset your password (valid for 15 minutes):<br><a href=\"{$link}\">{$link}</a>";
     send_mail($to, $subject, $body);
 }
 

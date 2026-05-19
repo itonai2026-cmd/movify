@@ -14,13 +14,13 @@ $error = '';
 
 if (is_post()) {
     if (!verify_csrf(post('csrf_token'))) {
-        $error = 'Cerere invalidă. Reîncearcă.';
+        $error = 'Invalid request. Try again.';
     } else {
         $password        = post('password');
         $passwordConfirm = post('password_confirm');
 
         if ($password !== $passwordConfirm) {
-            $error = 'Parolele nu coincid.';
+            $error = 'Passwords do not match.';
         } else {
             $result = register_user($pdo, post('email'), $password);
             if ($result['ok']) {
@@ -33,13 +33,13 @@ if (is_post()) {
     }
 }
 
-$pageTitle = 'Creează cont';
+$pageTitle = 'Create Account';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="flex min-h-screen items-center justify-center px-4">
     <div class="w-full max-w-md bg-dark-800 rounded-2xl p-8 shadow-xl border border-gray-700">
-        <h2 class="text-2xl font-bold text-center mb-6">Creează cont</h2>
+        <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
 
         <?php if ($error): ?>
             <div class="mb-4 p-3 rounded-lg bg-red-900/40 border border-red-700 text-red-300 text-sm">
@@ -55,31 +55,31 @@ require_once __DIR__ . '/includes/header.php';
                 <input type="email" id="email" name="email" required
                        value="<?= h(post('email')) ?>"
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white placeholder-gray-500"
-                       placeholder="exemplu@email.com">
+                       placeholder="you@example.com">
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Parolă</label>
+                <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
                 <input type="password" id="password" name="password" required minlength="8"
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white placeholder-gray-500"
-                       placeholder="Minim 8 caractere">
+                       placeholder="Min. 8 characters">
             </div>
 
             <div>
-                <label for="password_confirm" class="block text-sm font-medium text-gray-300 mb-1">Confirmă parola</label>
+                <label for="password_confirm" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
                 <input type="password" id="password_confirm" name="password_confirm" required minlength="8"
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white placeholder-gray-500"
-                       placeholder="Reintrodu parola">
+                       placeholder="Re-enter password">
             </div>
 
             <button type="submit"
                     class="w-full py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition">
-                Înregistrare
+                Sign Up
             </button>
         </form>
 
         <p class="text-center text-gray-400 text-sm mt-6">
-            Ai deja cont? <a href="<?= url('login.php') ?>" class="text-primary-400 hover:underline">Autentifică-te</a>
+            Already have an account? <a href="<?= url('login.php') ?>" class="text-primary-400 hover:underline">Sign in</a>
         </p>
     </div>
 </div>
