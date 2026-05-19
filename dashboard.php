@@ -243,4 +243,31 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </main>
 
+<script>
+async function deleteVideo(videoId, btn) {
+    if (!confirm('Sigur vrei să ștergi acest video?')) return;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+        const fd = new FormData();
+        fd.append('video_id', videoId);
+        const res  = await fetch(<?= json_encode(url('delete_video.php')) ?>, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok) {
+            const card = btn.closest('.group');
+            if (card) card.remove();
+        } else {
+            alert(data.error || 'Eroare la ștergere.');
+            btn.disabled = false;
+            btn.textContent = 'Șterge';
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Eroare de rețea.');
+        btn.disabled = false;
+        btn.textContent = 'Șterge';
+    }
+}
+</script>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
