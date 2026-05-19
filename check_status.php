@@ -69,12 +69,35 @@ $httpCode    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
 if ($httpCode >= 400) {
+    // Track consecutive API errors via DB column or session
+    $errorCount = (int)($_SESSION['poll_errors_' . $videoId] ?? 0) + 1;
+    $_SESSION['poll_errors_' . $videoId] = $errorCount;
+
+    // After 5 consecutive API errors, mark as failed and refund
+    if ($errorCount >= 5) {
+        unset($_SESSION['poll_errors_' . $videoId]);
+        $pdo->prepare('UPDATE videos SET status = ? WHERE id = ?')
+            ->execute(['failed', $videoId]);
+        refund_credits($pdo, $userId, (int)$video['credits_deducted']);
+
+        error_log("Fal.ai status check failed {$errorCount} times for video {$videoId}. HTTP {$httpCode}. Marking as failed.");
+        json_response([
+            'ok'      => true,
+            'status'  => 'failed',
+            'error'   => 'Generarea a eșuat (API indisponibil). Creditele au fost returnate.',
+            'credits' => get_credits($pdo, $userId),
+        ]);
+    }
+
     json_response([
         'ok'     => true,
         'status' => 'processing',
         'detail' => 'Încă se procesează...',
     ]);
 }
+
+// Reset error counter on successful API response
+unset($_SESSION['poll_errors_' . $videoId]);
 
 $data   = json_decode($apiResponse, true);
 $status = strtolower($data['status'] ?? 'IN_QUEUE');
