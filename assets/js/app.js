@@ -1,7 +1,8 @@
 /**
- * Movify – Frontend Logic
+ * Movify – Frontend Logic v2.1 – delete support
  * Dynamic credit calculation, form submission, polling.
  */
+console.log('Movify app.js v2.1 loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
     const form         = document.getElementById('generate-form');
