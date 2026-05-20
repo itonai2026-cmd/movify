@@ -1,57 +1,122 @@
 /**
  * Movify – Custom Styles (supplements Tailwind)
+ * Dark Mode Variant – Optimized for AI Video Generator
  */
 
-/* Smooth scrollbar */
+/* ═══ Scrollbar ═══ */
 ::-webkit-scrollbar {
     width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-    background: #111827;
-}
-::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #4b5563;
+    background: #0D1117;
+    /* deeper than #111827 */
 }
 
-/* Gradient glow behind brand */
+::-webkit-scrollbar-thumb {
+    background: #30363D;
+    /* lighter for visibility */
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8B5CF6;
+    /* violet on hover */
+}
+
+/* ═══ Brand Glow (logo) ═══ */
 .brand-glow {
     position: relative;
 }
+
 .brand-glow::after {
     content: '';
     position: absolute;
     inset: -20px;
-    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
     pointer-events: none;
     z-index: -1;
 }
 
-/* Spinner animation (fallback) */
+/* ═══ Spinner Animation ═══ */
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
+
 .animate-spin {
     animation: spin 1s linear infinite;
+    border-color: #8B5CF6;
+    /* violet spinner */
 }
 
-/* Video card hover lift */
+/* ═══ Video Card Hover ═══ */
 .group:hover {
     transform: translateY(-2px);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
 }
 
-/* File input styling */
+/* ═══ File Input ═══ */
 input[type="file"]::file-selector-button {
     cursor: pointer;
 }
 
-/* Focus ring consistency */
+/* ═══ Focus States ═══ */
 select:focus,
 textarea:focus,
 input:focus {
     outline: none;
+    border-color: #8B5CF6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* ═══ Deep Background (body) ═══ */
+body {
+    background-color: #010409;
+    /* OLED-friendly deep black */
+}
+
+/* ═══ Card Enhancement ═══ */
+.bg-dark-800,
+[class*="bg-dark-800"] {
+    background-color: #161B22 !important;
+    border-color: #30363D !important;
+}
+
+/* ═══ CTA Button Glow ═══ */
+button[type="submit"] {
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+}
+
+button[type="submit"]:hover {
+    box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
+}
+
+/* ═══ Primary Accent Boost ═══ */
+.bg-primary-600\/20 {
+    background-color: rgba(139, 92, 246, 0.2);
+}
+
+/* ═══ Duration Pills Active State ═══ */
+.peer:checked+div {
+    background-color: rgba(139, 92, 246, 0.2) !important;
+    border-color: #8B5CF6 !important;
+}
+
+/* ═══ Video Player Background ═══ */
+video {
+    background-color: #000;
+}
+
+/* ═══ Links Hover ═══ */
+a:hover {
+    color: #A78BFA;
+}
+
+/* ═══ Dropdown / Select Options ═══ */
+select option {
+    font-size: 12px;
+    padding: 4px 10px;
 }
