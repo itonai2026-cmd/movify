@@ -16,33 +16,33 @@ $success = '';
 
 if (is_post()) {
     if (!verify_csrf(post('csrf_token'))) {
-        $error = 'Cerere invalidă.';
+        $error = 'Invalid request.';
     } else {
         $code = post('code');
         if (verify_email($pdo, $email, $code)) {
             unset($_SESSION['verify_email']);
-            flash('success', 'Contul a fost verificat! Poți să te autentifici.');
+            flash('success', 'Account verified! You can now sign in.');
             redirect('login.php');
         }
-        $error = 'Cod incorect. Verifică și încearcă din nou.';
+        $error = 'Incorrect code. Please check and try again.';
     }
 }
 
-$pageTitle = 'Verificare email';
+$pageTitle = 'Email Verification';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="flex min-h-screen items-center justify-center px-4">
     <div class="w-full max-w-md bg-dark-800 rounded-2xl p-8 shadow-xl border border-gray-700">
-        <h2 class="text-2xl font-bold text-center mb-2">Verificare email</h2>
+        <h2 class="text-2xl font-bold text-center mb-2">Email Verification</h2>
         <p class="text-gray-400 text-center text-sm mb-6">
-            Am trimis un cod de 6 cifre la <span class="text-primary-400"><?= h($email) ?></span>
+            We sent a 6-digit code to <span class="text-primary-400"><?= h($email) ?></span>
         </p>
 
         <?php if (!empty($_SESSION['verify_code_hint']) && (SMTP_USER === '' || SMTP_PASS === '')): ?>
             <div class="mb-4 p-3 rounded-lg bg-yellow-900/40 border border-yellow-600 text-yellow-300 text-sm text-center">
-                <strong>Dev mode</strong> – SMTP nu este configurat.<br>
-                Codul tău de verificare: <span class="text-2xl font-mono font-bold tracking-widest text-white"><?= h($_SESSION['verify_code_hint']) ?></span>
+                <strong>Dev mode</strong> – SMTP not configured.<br>
+                Your verification code: <span class="text-2xl font-mono font-bold tracking-widest text-white"><?= h($_SESSION['verify_code_hint']) ?></span>
             </div>
         <?php endif; ?>
 
@@ -56,7 +56,7 @@ require_once __DIR__ . '/includes/header.php';
             <?= csrf_field() ?>
 
             <div>
-                <label for="code" class="block text-sm font-medium text-gray-300 mb-1">Cod de verificare</label>
+                <label for="code" class="block text-sm font-medium text-gray-300 mb-1">Verification Code</label>
                 <input type="text" id="code" name="code" required maxlength="6" pattern="\d{6}"
                        class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none text-white text-center text-2xl tracking-[0.5em] placeholder-gray-500"
                        placeholder="000000" autocomplete="one-time-code">
@@ -64,13 +64,13 @@ require_once __DIR__ . '/includes/header.php';
 
             <button type="submit"
                     class="w-full py-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold transition">
-                Verifică
+                Verify
             </button>
         </form>
 
         <p class="text-center text-gray-400 text-sm mt-6">
-            Nu ai primit codul?
-            <a href="<?= url('register.php') ?>" class="text-primary-400 hover:underline">Reînregistrează-te</a>
+            Didn't receive the code?
+            <a href="<?= url('register.php') ?>" class="text-primary-400 hover:underline">Register again</a>
         </p>
     </div>
 </div>
