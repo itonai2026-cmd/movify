@@ -70,9 +70,74 @@ require_once __DIR__ . '/includes/header.php';
 
         <p class="text-center text-gray-400 text-sm mt-6">
             Didn't receive the code?
-            <a href="<?= url('register.php') ?>" class="text-primary-400 hover:underline">Register again</a>
+            <button type="button" id="resend-btn" onclick="resendCode()"
+                    class="text-primary-400 hover:text-primary-300 hover:underline transition font-medium">
+                Resend code
+            </button>
+            <br><span class="text-xs text-gray-500 mt-2 block">or <a href="<?= url('register.php') ?>" class="text-primary-400 hover:underline">register again</a></span>
         </p>
+
+        <div id="resend-message" class="mt-4 p-3 rounded-lg hidden text-sm text-center"></div>
     </div>
 </div>
+
+<script>
+let resendCooldown = 0;
+
+async function resendCode() {
+    const btn = document.getElementById('resend-btn');
+    const msg = document.getElementById('resend-message');
+    
+    // Check cooldown
+    if (resendCooldown > 0) {
+        msg.className = 'mt-4 p-3 rounded-lg text-sm text-center bg-yellow-900/40 border border-yellow-600 text-yellow-300';
+        msg.textContent = `Please wait ${resendCooldown} seconds...`;
+        msg.classList.remove('hidden');
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    msg.className = 'mt-4 p-3 rounded-lg hidden text-sm text-center';
+    
+    try {
+        const fd = new FormData();
+        const res = await fetch(<?= json_encode(url('resend_verify.php')) ?>, { method: 'POST', body: fd });
+        const data = await res.json();
+        
+        if (data.ok) {
+            msg.className = 'mt-4 p-3 rounded-lg text-sm text-center bg-green-900/40 border border-green-600 text-green-300';
+            msg.textContent = data.message || 'Code sent! Check your email.';
+            
+            // Start 60-second cooldown
+            resendCooldown = 60;
+            const countdown = setInterval(() => {
+                resendCooldown--;
+                if (resendCooldown <= 0) {
+                    clearInterval(countdown);
+                    btn.disabled = false;
+                    btn.textContent = 'Resend code';
+                    msg.classList.add('hidden');
+                } else {
+                    msg.textContent = `Next resend available in ${resendCooldown}s`;
+                }
+            }, 1000);
+        } else {
+            msg.className = 'mt-4 p-3 rounded-lg text-sm text-center bg-red-900/40 border border-red-600 text-red-300';
+            msg.textContent = data.error || 'Error sending code.';
+            btn.disabled = false;
+            btn.textContent = 'Resend code';
+        }
+        msg.classList.remove('hidden');
+    } catch (err) {
+        console.error(err);
+        msg.className = 'mt-4 p-3 rounded-lg text-sm text-center bg-red-900/40 border border-red-600 text-red-300';
+        msg.textContent = 'Network error. Try again.';
+        msg.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Resend code';
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

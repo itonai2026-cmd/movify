@@ -178,15 +178,159 @@ function send_reset_email(string $to, string $link): void
 
 function send_mail(string $to, string $subject, string $htmlBody): void
 {
+    // Development mode: no SMTP configured
     if (SMTP_USER === '' || SMTP_PASS === '') {
         error_log("SMTP not configured – would send to {$to}: {$subject}");
         error_log("Mail body: {$htmlBody}");
         return;
     }
 
+    // Try with native PHP mail() first (may work if sendmail/postfix configured)
     $headers  = "MIME-Version: 1.0\r\n";
     $headers .= "Content-type: text/html; charset=UTF-8\r\n";
     $headers .= "From: " . SMTP_FROM_NAME . " <" . SMTP_FROM . ">\r\n";
+    $headers .= "Reply-To: " . SMTP_FROM . "\r\n";
 
-    @mail($to, $subject, $htmlBody, $headers);
+    if (@mail($to, $subject, $htmlBody, $headers)) {
+        error_log("Email sent successfully to {$to} via native mail()");
+        return;
+    }
+
+    // Fallback: attempt SMTP socket connection (for Gmail, Mailgun, etc.)
+    send_mail_smtp($to, $subject, $htmlBody);
+}
+
+/**
+ * Send email via SMTP socket connection
+ * Supports STARTTLS (port 587) and SSL (port 465)
+ */
+function send_mail_smtp(string $to, string $subject, string $htmlBody): void
+{
+    $smtpHost = SMTP_HOST;
+    $smtpPort = SMTP_PORT;
+    $smtpUser = SMTP_USER;
+    $smtpPass = SMTP_PASS;
+    $from     = SMTP_FROM;
+    $fromName = SMTP_FROM_NAME;
+
+    // Determine connection type
+    $useSSL = ($smtpPort == 465);
+    $useTLS = ($smtpPort == 587);
+
+    // Build socket URL
+    $protocol = $useSSL ? 'ssl://' : '';
+    $host = $protocol . $smtpHost;
+
+    // Connect
+    $smtp = @fsockopen($host, $smtpPort, $errno, $errstr, 10);
+    if (!$smtp) {
+        error_log("SMTP connection failed to {$smtpHost}:{$smtpPort} – {$errstr} ({$errno})");
+        return;
+    }
+
+    stream_set_timeout($smtp, 5);
+
+    // Read greeting
+    $response = fgets($smtp, 512);
+    if (strpos($response, '220') === false) {
+        error_log("SMTP greeting error: {$response}");
+        fclose($smtp);
+        return;
+    }
+
+    // STARTTLS if needed
+    if ($useTLS) {
+        fputs($smtp, "STARTTLS\r\n");
+        $response = fgets($smtp, 512);
+        if (strpos($response, '220') === false) {
+            error_log("STARTTLS failed: {$response}");
+            fclose($smtp);
+            return;
+        }
+
+        // Upgrade to TLS
+        if (!stream_socket_enable_crypto($smtp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+            error_log("TLS upgrade failed");
+            fclose($smtp);
+            return;
+        }
+    }
+
+    // AUTH LOGIN
+    fputs($smtp, "EHLO localhost\r\n");
+    $response = fgets($smtp, 512);
+
+    fputs($smtp, "AUTH LOGIN\r\n");
+    $response = fgets($smtp, 512);
+    if (strpos($response, '334') === false) {
+        error_log("AUTH LOGIN failed: {$response}");
+        fclose($smtp);
+        return;
+    }
+
+    // Send username (base64)
+    fputs($smtp, base64_encode($smtpUser) . "\r\n");
+    $response = fgets($smtp, 512);
+    if (strpos($response, '334') === false) {
+        error_log("Username auth failed: {$response}");
+        fclose($smtp);
+        return;
+    }
+
+    // Send password (base64)
+    fputs($smtp, base64_encode($smtpPass) . "\r\n");
+    $response = fgets($smtp, 512);
+    if (strpos($response, '235') === false) {
+        error_log("Password auth failed: {$response}");
+        fclose($smtp);
+        return;
+    }
+
+    // FROM
+    fputs($smtp, "MAIL FROM:<{$from}>\r\n");
+    $response = fgets($smtp, 512);
+
+    // RCPT TO
+    fputs($smtp, "RCPT TO:<{$to}>\r\n");
+    $response = fgets($smtp, 512);
+
+    // DATA
+    fputs($smtp, "DATA\r\n");
+    $response = fgets($smtp, 512);
+
+    // Build message with headers
+    $messageId = '<' . uniqid() . '@' . parse_url(APP_URL, PHP_URL_HOST) . '>';
+    $headers = "From: {$fromName} <{$from}>\r\n";
+    $headers .= "To: {$to}\r\n";
+    $headers .= "Subject: {$subject}\r\n";
+    $headers .= "Date: " . date('r') . "\r\n";
+    $headers .= "Message-ID: {$messageId}\r\n";
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    $headers .= "Content-Transfer-Encoding: 8bit\r\n";
+    $headers .= "\r\n";
+
+    $message = $headers . $htmlBody;
+
+    // Send body (escape dots)
+    $lines = explode("\r\n", $message);
+    foreach ($lines as $line) {
+        if (substr($line, 0, 1) === '.') {
+            $line = '.' . $line;
+        }
+        fputs($smtp, $line . "\r\n");
+    }
+
+    fputs($smtp, ".\r\n");
+    $response = fgets($smtp, 512);
+
+    if (strpos($response, '250') !== false) {
+        error_log("Email sent successfully to {$to} via SMTP");
+    } else {
+        error_log("SMTP send failed: {$response}");
+    }
+
+    // QUIT
+    fputs($smtp, "QUIT\r\n");
+    fclose($smtp);
 }
