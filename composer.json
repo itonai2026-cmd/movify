@@ -1,0 +1,14 @@
+{
+  "name": "movify/ai-video-generator",
+  "description": "AI Video Generator - Multiuser Web Application",
+  "type": "project",
+  "require": {
+    "php": ">=7.4",
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "Movify\\": "src/"
+    }
+  }
+}
